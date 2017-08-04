@@ -32,7 +32,8 @@ import mvx.util.*;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-554162 140226 EONG        Due date not transferred with APS450MI
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -276,11 +277,11 @@ public class APS450MI extends MIBatch
       }
       // Due date
       if (pAPS450Fnc_maintain.partialVld.get()) {
-         if (!MICommon.setDate_allowIncorrect(pAPS450Fnc_maintain.DUDT, inAddHead.getQ8DUDT(), "DUDT")) {
+         if (!MICommon.setDate_allowIncorrect(pAPS450Fnc_maintain.ACDT, inAddHead.getQ8ACDT(), "ACDT")) {
             return;
          }
       } else {
-         if (!MICommon.setDate(pAPS450Fnc_maintain.DUDT, inAddHead.getQ8DUDT(), "DUDT")) {
+         if (!MICommon.setDate(pAPS450Fnc_maintain.ACDT, inAddHead.getQ8ACDT(), "ACDT")) {
             return;
          }
       }
@@ -3533,7 +3534,7 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="_MAK_EONG_140224_04:47";
+public final static String _spNumber="";
 
 public final static String _GUID="5AE5B55BA2364b3bA438EA239BA0AE55";
 
@@ -3577,9 +3578,7 @@ public final static String _pgmName="APS450MI";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   }
 
-   public final static String [][] _standardModifications={
-      {"JT-554162","140226","EONG","Due date not transferred with APS450MI"}
-   };
+  public final static String [][] _standardModifications={};
 }

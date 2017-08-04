@@ -32,8 +32,8 @@ import mvx.db.common.FieldSelection;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-577852 140402 EONG        APS450MI AddHead reject the invoice if the same invoice number exist
-*     JT-587835 140505 EONG        APS450MI - Due Date is not computed in APS450MI even with invoice date & terms
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -1441,10 +1441,9 @@ public class APS450Fnc extends Function
             saved_APIBH.setRecord(APIBH);
             APIBH.setCONO(currentCONO);
             APIBH.setDIVI().moveLeftPad(DIVI);
-            APIBH.setSUNO().moveLeftPad(pMaintain.SUNO.get());
-            APIBH.setSINO().moveLeftPad(pMaintain.SINO.get());
+            APIBH.setSINO().moveLeftPad(SINO.get());
             if (addMode) {
-               if (APIBH.CHAIN("40", APIBH.getKey("40", 4))) {
+               if (APIBH.CHAIN("10", APIBH.getKey("10", 3))) {
                   // MSGID=WSI1704 Supplier invoice number &1 already exists
                   messages.addError(this.DSPGM, "SINO", "WSI1704", SINO.get());
                }
@@ -1911,7 +1910,7 @@ public class APS450Fnc extends Function
          }
       }
       // Due date
-      if (pMaintain.DUDT.isBlank() && !pMaintain.TEPY.isBlank()) {
+      if (pMaintain.GPDF.get() && !pMaintain.TEPY.isBlank()) {
          found_CIDMAS = cRefSUNOext.getCIDMAS(IDMAS, found_CIDMAS, currentCONO, pMaintain.SUNO.get());
          if (found_CIDMAS) {
             found_CSYTAB_TEPY = cRefTEPYext.getCSYTAB_TEPY(SYTAB, found_CSYTAB_TEPY, currentCONO, pMaintain.TEPY.get(), IDMAS.getLNCD());
@@ -7564,7 +7563,7 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="_MAK_EONG_140402_04:47";
+public final static String _spNumber="";
 
 public final static String _GUID="4D33BB9E43C54fd3BC6EADF048F9113B";
 
@@ -7608,10 +7607,7 @@ public final static String _pgmName="APS450Fnc";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-577852","140402","EONG","APS450MI AddHead reject the invoice if the same invoice number exist"},
-      {"JT-587835","140505","EONG","APS450MI - Due Date is not computed in APS450MI even with invoice date & terms"}
-   };
-}
+  public final static String [][] _standardModifications={};
+} 	 	

@@ -30,7 +30,8 @@ import mvx.util.*;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-535245 140108 11893       Clear voucher text from previous invoice in APS455 
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -324,21 +325,18 @@ public class APS455Fnc extends Function
             pMaintain.ACDT.set(APS455DS.getZWACDT());
          }
          // Voucher text
-         if (pMaintain.genVTXT.get()) {
-            if (pMaintain.work_INBNpreset) {
-               // Voucher text can only be generated if only one invoice
-               XQSUNO.move(APIBH.getSUNO());
-               XXSINO.moveLeft(APIBH.getSINO());
-               CRCalendar.lookUpDate_blankDIVI(currentCONO, APIBH.getIVDT());      
-               XXINYR.move(CRCalendar.getYear());
-               found_CIDMAS = cRefSUNOext.getCIDMAS(IDMAS, false, currentCONO, APIBH.getSPYN());
-               XXALSU.move(IDMAS.getALSU());
-               pMaintain.VTXT.set().moveLeftPad(XXVTXT);
-            }
-         } else {
-            // Default voucher text from APS455DS
-            pMaintain.VTXT.set().moveLeftPad(APS455DS.getZWVTXT());
-         }
+         pMaintain.VTXT.set().moveLeftPad(APS455DS.getZWVTXT());
+         //if (pMaintain.VTXT.get().isBlank() &&
+         //    pMaintain.work_INBNpreset) {
+         //   // Voucher text can only be proposed if only one invoice
+         //   XQSUNO.move(APIBH.getSUNO());
+         //   XXSINO.moveLeft(APIBH.getSINO());
+         //   CRCalendar.lookUpDate_blankDIVI(currentCONO, APIBH.getIVDT());      
+         //   XXINYR.move(CRCalendar.getYear());
+         //   found_CIDMAS = cRefSUNOext.getCIDMAS(IDMAS, false, currentCONO, APIBH.getSPYN());
+         //   XXALSU.move(IDMAS.getALSU());
+         //   pMaintain.VTXT.set().moveLeftPad(XXVTXT);
+         //}
       }
       // Entry date
       pMaintain.RGDT.set(SYSTP.getRGDT());
@@ -1094,9 +1092,9 @@ public class APS455Fnc extends Function
       // Accounting date
       pMaintain.ACDT.setMANDATORYAccess();
       // Voucher text
-      if (pMaintain.work_INBNpreset) {
-         pMaintain.VTXT.setMANDATORYAccess();
-      }
+      //if (pMaintain.work_INBNpreset) {
+      //   pMaintain.VTXT.setMANDATORYAccess();
+      //}
       // Report layout
       pMaintain.LITP.setMANDATORYAccess();
       // Disable parameters, depending on other parameters
@@ -1953,7 +1951,7 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="_MAK_11893_131220_11:14";
+public final static String _spNumber="";
 
 public final static String _GUID="4442367233634db4935484E8821EBF66";
 
@@ -1997,9 +1995,7 @@ public final static String _pgmName="APS455Fnc";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-535245","140108","11893","Clear voucher text from previous invoice in APS455"}
-   };
-}
+  public final static String [][] _standardModifications={};
+} 	 	

@@ -32,9 +32,8 @@ import mvx.db.common.FieldSelection;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-556359 140318 11893       Not possible to use Alias number in APS451
-*     JT-595301 140516 16494       Use of different units of measure (qty and price) doesn't work in APS451
-*     JT-604224 140606 16494       Use of different units of measure (qty and price) doesn't work in APS451
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -612,10 +611,6 @@ public class APS451Fnc extends Function
       pMaintain.VTA2.set(mvxHalfAdjust(pMaintain.VTA2.get(), pMaintain.VTA2.getDecimals()));
       pMaintain.VTA2.validateMANDATORYandConstraints();
       // Item number.
-      if (getItnoFromAlias()) {
-         // Display the panel with new values if new ITNO found from alias
-         pMaintain.setNewEntryContext();
-      }
       pMaintain.ITNO.validateMANDATORYandConstraints();
       found_MITMAS = cRefITNOext.getMITMAS(ITMAS, found_MITMAS, currentCONO, pMaintain.ITNO.get());
       pMaintain.ITNO.validateExists(found_MITMAS);
@@ -809,11 +804,6 @@ public class APS451Fnc extends Function
             // Display the panel with new values
             pMaintain.setNewEntryContext();
          }
-      }
-      // Item number. Get item number from alias (POPN) if ITNO is blank
-      if (getItnoFromAlias()) {
-         // Display the panel with new values if new ITNO found from alias
-         pMaintain.setNewEntryContext();
       }
       // VAT code.
       if (!pMaintain.VTCD.isAccessDISABLED()) {
@@ -1025,8 +1015,6 @@ public class APS451Fnc extends Function
    * Moves values from the parameter list to the database fields.
    */
    public void maintain_update_setValues() {
-      double IVQAinBasicUM = 0d;
-      double GRPRinBasicUM = 0d;
       // Save record
       FAPIBL_record.setRecord(APIBL);
       // Set fields
@@ -1043,65 +1031,30 @@ public class APS451Fnc extends Function
          // Must be entered line type = 1 and invoice matching
          if (pMaintain.RDTP.get() == cRefRDTPext.ITEM_LINE() ||
              pMaintain.RDTP.get() == cRefRDTPext.LINE_CHARGE()) {
-            IVQAinBasicUM = pMaintain.IVQA.get();
-            GRPRinBasicUM = pMaintain.GRPR.get();
-            found_MITMAS = cRefITNOext.getMITMAS(ITMAS, found_MITMAS, currentCONO, pMaintain.ITNO.get());
-            //   Qty - If Alternative U/M is given, convert to Basic U/M
-            if (pMaintain.PUUN.get().NE(ITMAS.getUNMS())) {
-               ITAUN.setCONO(currentCONO);
-               ITAUN.setITNO().move(ITMAS.getITNO()); 
-               ITAUN.setAUTP(1); 
-               ITAUN.setALUN().move(pMaintain.PUUN.get()); 
-               if (ITAUN.CHAIN("00", ITAUN.getKey("00"))) { 
-                  if (!isBlank(ITAUN.getCOFA(), 9)) {
-                     if (ITAUN.getDMCF() == 1) {
-                        IVQAinBasicUM *= ITAUN.getCOFA(); 
-                     } else { 
-                        IVQAinBasicUM /= ITAUN.getCOFA(); 
-                     }
-                  }
-               }
-            }  
-            //   Price - If Alternative U/M is given, convert to Basic U/M
-            if (pMaintain.PPUN.get().NE(ITMAS.getUNMS())) {
-               ITAUN.setCONO(currentCONO);
-               ITAUN.setITNO().move(ITMAS.getITNO()); 
-               ITAUN.setAUTP(2); 
-               ITAUN.setALUN().move(pMaintain.PPUN.get()); 
-               if (ITAUN.CHAIN("00", ITAUN.getKey("00"))) { 
-                  if (!isBlank(ITAUN.getCOFA(), 9)) {
-                     if (ITAUN.getDMCF() == 2) {
-                        GRPRinBasicUM *= ITAUN.getCOFA(); 
-                     } else { 
-                        GRPRinBasicUM /= ITAUN.getCOFA();     
-                     }
-                  }
-               }
-            }
             if (!pMaintain.IVQA.isBlank()) {
                if (pMaintain.PUCD.isBlank()) {
-                  pMaintain.GLAM.set(GRPRinBasicUM * IVQAinBasicUM);
+                  pMaintain.GLAM.set(pMaintain.GRPR.get() * pMaintain.IVQA.get());
                } else {
-                  pMaintain.GLAM.set((GRPRinBasicUM * IVQAinBasicUM) / pMaintain.PUCD.get());
+                  pMaintain.GLAM.set((pMaintain.GRPR.get() * pMaintain.IVQA.get())/pMaintain.PUCD.get());
                }
-               pMaintain.NEPR.set(GRPRinBasicUM);
+               pMaintain.NEPR.set(pMaintain.GRPR.get());
                if (!isBlank(pMaintain.DIPC.get())) {
-                  pMaintain.NEPR.set(GRPRinBasicUM - (GRPRinBasicUM * pMaintain.DIPC.get() / 100));
+                  pMaintain.NEPR.set(pMaintain.GRPR.get() - (pMaintain.GRPR.get() * pMaintain.DIPC.get()/100));
                }
                if (pMaintain.PUCD.isBlank()) {
-                  pMaintain.NLAM.set(pMaintain.NEPR.get() * IVQAinBasicUM);
+                  pMaintain.NLAM.set(pMaintain.NEPR.get() * pMaintain.IVQA.get());
                } else {
-                  pMaintain.NLAM.set((pMaintain.NEPR.get() * IVQAinBasicUM) / pMaintain.PUCD.get());
+                  pMaintain.NLAM.set((pMaintain.NEPR.get() * pMaintain.IVQA.get())/pMaintain.PUCD.get());
                }
             } else {
                if (pMaintain.PUCD.isBlank()) {
-                  pMaintain.GLAM.set(GRPRinBasicUM);
+                  pMaintain.GLAM.set(pMaintain.GRPR.get());
                } else {
-                  pMaintain.GLAM.set(GRPRinBasicUM/pMaintain.PUCD.get());
+                  pMaintain.GLAM.set(pMaintain.GRPR.get()/pMaintain.PUCD.get());
                }
-               pMaintain.NEPR.set(GRPRinBasicUM);
+               pMaintain.NEPR.set(pMaintain.GRPR.get());
                if (!isBlank(pMaintain.DIPC.get())) {
-                  pMaintain.NEPR.set(GRPRinBasicUM - (GRPRinBasicUM * pMaintain.DIPC.get() / 100));
+                  pMaintain.NEPR.set(pMaintain.GRPR.get() - (pMaintain.GRPR.get() * pMaintain.DIPC.get()/100));
                }
                if (pMaintain.PUCD.isBlank()) {
                   pMaintain.NLAM.set(pMaintain.NEPR.get());
@@ -2769,31 +2722,6 @@ public class APS451Fnc extends Function
    }
 
    /**
-    * Finds item number from alias. If alias is not found, the alias value is returned.
-    * @return 
-    * True if ITNO is populated from POPN (alias)
-    */
-   public boolean getItnoFromAlias() {
-      // Item number.
-      if (pMaintain.ITNO.isAccessMANDATORYorOPTIONAL()) {
-         if (pMaintain.ITNO.get().isBlank() &&
-            !pMaintain.POPN.get().isBlank()) {
-            pMaintain.ITNO.set().moveLeftPad(pMaintain.POPN.get());
-            ITVEN.setCONO(currentCONO);
-            ITVEN.setSITE().moveLeftPad(pMaintain.POPN.get());
-            ITVEN.setSUNO().moveLeftPad(APIBH.getSUNO());
-            if (ITVEN.CHAIN("20", ITVEN.getKey("20", 3))) {
-               if (!ITVEN.getITNO().isBlank()) {
-                  pMaintain.ITNO.set().moveLeftPad(ITVEN.getITNO());
-               }
-            }
-            return true;
-         }
-      }
-      return false;
-   }
-   
-   /**
    * Checks if VAT is calculated for the given Division.
    * @param DIVI
    *    Division
@@ -3396,7 +3324,6 @@ public class APS451Fnc extends Function
    public mvx.db.dta.CSYPAR SYPAR;
    public mvx.db.dta.MPHEAD PHEAD;
    public mvx.db.dta.MITAUN ITAUN;
-   public mvx.db.dta.MITVEN ITVEN;
    public mvx.db.dta.MPOEXP POEXP;
    public mvx.db.dta.MITMAS ITMAS;
    public mvx.db.dta.CFACIL FACIL;
@@ -3421,7 +3348,6 @@ public class APS451Fnc extends Function
       ITAUN = (mvx.db.dta.MITAUN)getMDB("MITAUN", ITAUN);
       POEXP = (mvx.db.dta.MPOEXP)getMDB("MPOEXP", POEXP);
       ITMAS = (mvx.db.dta.MITMAS)getMDB("MITMAS", ITMAS);
-      ITVEN = (mvx.db.dta.MITVEN)getMDB("MITVEN", ITVEN);
       FACIL = (mvx.db.dta.CFACIL)getMDB("CFACIL", FACIL);
       PLINE = (mvx.db.dta.MPLINE)getMDB("MPLINE", PLINE);
       PCELE = (mvx.db.dta.MPCELE)getMDB("MPCELE", PCELE);
@@ -3609,7 +3535,6 @@ public class APS451Fnc extends Function
       v.addElement(MNDIV);
       v.addElement(PHEAD);
       v.addElement(ITAUN);
-      v.addElement(ITVEN);
       v.addElement(POEXP);
       v.addElement(ITMAS);
       v.addElement(FACIL);
@@ -3728,13 +3653,13 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="MAK_16494_140605_09:18";
+public final static String _spNumber="";
 
 public final static String _GUID="885CD405711549b29C607330FDBDCC4A";
 
 public final static String _tempFixComment="";
 
-public final static String _build="000000000000351";
+public final static String _build="000000000000343";
 
 public final static String _pgmName="APS451Fnc";
 
@@ -3772,11 +3697,7 @@ public final static String _pgmName="APS451Fnc";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-556359","140318","11893","Not possible to use Alias number in APS451"},
-      {"JT-595301","140516","16494","Use of different units of measure (qty and price) doesn't work in APS451"},
-      {"JT-604224","140606","16494","Use of different units of measure (qty and price) doesn't work in APS451"}
-   };
-}
+  public final static String [][] _standardModifications={};
+} 	 	

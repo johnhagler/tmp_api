@@ -34,7 +34,8 @@ import mvx.util.*;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-535245 140108 11893       Clear voucher text from previous invoice in APS455 
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -57,8 +58,6 @@ public class APS455 extends Interactive
    */
    public void PBINZ() {
       ensureReadOfTables();
-      // Do not generate VTXT, use VTXT from list version instead (APS455DS)
-      generateVTXT = false;
       // Forget notifications
       if (pMaintain != null) {
          pMaintain.messages.forgetNotifications();
@@ -870,7 +869,6 @@ public class APS455 extends Interactive
       if (!submitSelection || !isLastPanel()) {
          pMaintain.noSubmit.set(true);
       }
-      pMaintain.genVTXT.set(generateVTXT);
       pMaintain.manualCall.set(true); // Called manually from APS455 (as opposed to automatically from a batch job, e.g. PPCRTSBT).
       // Set key parameters
       if (!passCSYSTP) {
@@ -1955,10 +1953,6 @@ public class APS455 extends Interactive
                   presetIBOP = bookmark.getIntParameter("presetIBOP");
                }
             }
-            // - Generate voucher text
-            if (bookmark.isValidIntParameter("genVTXT")) {
-               generateVTXT = toBoolean(bookmark.getIntParameter("genVTXT"));
-            }
          }
          // Handle personal report version
          if (!bookmark_RESP.isBlank()) {
@@ -2354,7 +2348,6 @@ public class APS455 extends Interactive
    public boolean preparePanelE;
    public boolean preparePanelP;
    public boolean errorOnInitiate;
-   public boolean generateVTXT;
    public cCRCommon CRCommon = new cCRCommon(this);
    public cCRCalendar CRCalendar = new cCRCalendar(this);
    public cCROutput CROutput = new cCROutput(this);
@@ -2433,7 +2426,6 @@ public class APS455 extends Interactive
       preparePanelP = false;
       errorOnInitiate = false;
       setACDTtoCurrentDate = false;
-      generateVTXT = false;
    }
    
    public String getBookmarkTableName() { 	
@@ -2454,7 +2446,6 @@ public class APS455 extends Interactive
       {"presetDIVI", "ALPHA",   "Division",        "Preset selected division (only used for personal report version)."},
       {"presetINBN", "NUMERIC", "Invoice",         "Preset invoice INBN (only used for personal report version)."},
       {"presetIBOP", "NUMERIC", "Operation",       "Preset operation IBOP (only used for personal report version)."},
-      {"genVTXT",    "NUMERIC", "Generate VTXT",   "Generate VTXT based on SUNO, SINO, INYR, ALSU, value 0 or 1(only used for Update to APL)."},
    };
 
    /**
@@ -2490,7 +2481,7 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="_MAK_11893_131220_11:10";
+public final static String _spNumber="";
 
 public final static String _GUID="417267C780284731B83C2996A883DD4F";
 
@@ -2534,9 +2525,7 @@ public final static String _pgmName="APS455";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-535245","140108","11893","Clear voucher text from previous invoice in APS455"}
-   };
+  public final static String [][] _standardModifications={};
 }

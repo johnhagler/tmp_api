@@ -37,7 +37,8 @@ import mvx.db.common.FieldSelection;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-535245 140108 11893       Clear voucher text from previous invoice in APS455 
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -6810,7 +6811,6 @@ public class APS450 extends Interactive
       newBookmark.addParameter("presetDIVI", DIVI);
       newBookmark.addParameter("presetINBN", INBN);
       newBookmark.addParameter("presetIBOP", IBOP);
-      newBookmark.addParameter("genVTXT", toInt(true)); // Generate voucher text from SUNO, SINO, INYR, ALSU
       // Call APS455
       XFPGNM.move(LDAZZ.FPNM);
       LDAZZ.PICC.clear();
@@ -8127,7 +8127,7 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="_MAK_11893_131220_11:00";
+public final static String _spNumber="";
 
 public final static String _GUID="58B2A888A6D74700B46569754303C17C";
 
@@ -8171,9 +8171,7 @@ public final static String _pgmName="APS450";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-535245","140108","11893","Clear voucher text from previous invoice in APS455"}
-   };
-}
+  public final static String [][] _standardModifications={};
+} 	

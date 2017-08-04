@@ -34,14 +34,8 @@ import mvx.db.common.FieldSelection;
 
 /*
 *Modification area - M3
-*Nbr            Date   User id     Description*     JT-597855 140522 16494       APS455Sbm does not complete
-*     JT-600725 140528 16494       Does not update invoice status by F16 (Approve All) on APS360 properly - APS455Sbm
-*     JT-657611 141027 ATAGALICUD  Supplier Invoice entered in APS450 get reverse VAT amount times two if no connec
-*     JT-719641 150109 EONG        APS450: Update of AP ends up in GLS037 due to unbalanced voucher for credit note
-*     JT-739146 150227 ATAGALICUD  We get a wrong VAT code on supplier invoices that are registered though APS450 if the VAT code that are send in though APS450MI is different from the supplier VAT code I CRS624.
-*     JT-755785 150401 16494       In PPS118, status self billing dont change into 90, when purchase order is invoiced and updated to Accounts Payable
-*     JT-774791 150507 ATAGALICUD  APS450 and Auto VAT accounting 4 creates an unbalanced voucher sometimes
-*     JT-805156 150720 EONG        APS450MI: Auto update not working
+*Nbr            Date   User id     Description
+*99999999999999 999999 XXXXXXXXXX  x
 *Modification area - Business partner
 *Nbr            Date   User id     Description
 *99999999999999 999999 XXXXXXXXXX  x
@@ -427,14 +421,8 @@ public class APS455Sbm extends Batch
              APIBH.getIBLE() != cRefIBLEext.WARNINGS()) 
          {
             // Check valid accounting date
-            if (isBlank(APIBH.getACDT())) {
-               if (movexDate() >= DSFFNC.getDFFRDT() && movexDate() <= DSFFNC.getDFTODT()) {
-                  return true;
-               }
-            } else {
-               if (APIBH.getACDT() >= DSFFNC.getDFFRDT() && APIBH.getACDT() <= DSFFNC.getDFTODT()) {
-                  return true;
-               }
+            if (movexDate() >= DSFFNC.getDFFRDT() && movexDate() <= DSFFNC.getDFTODT()) {
+               return true;
             }
          }
       } else {
@@ -740,7 +728,6 @@ public class APS455Sbm extends Batch
          }
       }
       // Set status updated in APL
-      setSelfbillingReceiptsAsUpdatedInAPL();
       if (APIBH.CHAIN_LOCK("00", APIBH.getKey("00"))) {
          APIBH.setSUPA(cRefSUPAext.UPDATED_IN_APL());
          APIBH.setVONO(currentVONO);
@@ -825,12 +812,14 @@ public class APS455Sbm extends Batch
          }
       }
       VATT08 = 0;
-      found_CSYTAB_VTCD = cRefVTCDext.getCSYTAB_VTCD(SYTAB, found_CSYTAB_VTCD, LDAZD.CMTP, APIBH.getCONO(), PLCHKIF.FTDIVI, PLCHKIF.FTVTCD);
-      if (found_CSYTAB_VTCD) {
-         cRefVTCDext.setDSVTCD(SYTAB, DSVTCD);
-         if (DSVTCD.getYKVATT() == 8) {
-            // Reverse charge of VAT.
-            VATT08 = 1;
+      if (XXCVAT == 0 && XXEUVT == 0 && PLCHKIF.FTCLCV == 1) {
+         found_CSYTAB_VTCD = cRefVTCDext.getCSYTAB_VTCD(SYTAB, found_CSYTAB_VTCD, LDAZD.CMTP, APIBH.getCONO(), PLCHKIF.FTDIVI, PLCHKIF.FTVTCD);
+         if (found_CSYTAB_VTCD) {
+            cRefVTCDext.setDSVTCD(SYTAB, DSVTCD);
+            if (DSVTCD.getYKVATT() == 8) {
+               // Reverse charge of VAT.
+               VATT08 = 1;
+            }
          }
       }
    }
@@ -1410,19 +1399,7 @@ public class APS455Sbm extends Batch
       CR040.setSINO().move(APIBH.getSINO());
       CR040.setIVDT(APIBH.getIVDT());
       CR040.setDUDT(APIBH.getDUDT());
-      APIBL.setCONO(APIBH.getCONO());
-      APIBL.setDIVI().move(APIBH.getDIVI());
-      APIBL.setINBN(APIBH.getINBN());
-      APIBL.setRDTP(cRefRDTPext.VAT());
-      APIBL.SETLL("10", APIBL.getKey("10", 4));
-      //   Read records
-      IN93 = !APIBL.READE("10", APIBL.getKey("10", 4));
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      if (!IN93 && APIBL.getVTCD() != 0) {
-         CR040.setVTCD(APIBL.getVTCD());
-      } else {
-         CR040.setVTCD(IDVEN.getVTCD());
-      }
+      CR040.setVTCD(IDVEN.getVTCD());
       if (!APIBH.getFTCO().isBlank()) {
          CR040.setFTCO().move(APIBH.getFTCO());
       } else {
@@ -3303,7 +3280,7 @@ public class APS455Sbm extends Batch
       PXCRTVAC.PPCMTP = LDAZD.CMTP;
       PXCRTVAC.PPLANC.move(LDAZD.LANC);
       PXCRTVAC.PPDCFM.moveRight(LDAZD.DCFM);
-      PXCRTVAC.PPVTCD = CR040.getVTCD(); 	
+      PXCRTVAC.PPVTCD = XXVTCD; 	
       XVBSCD.moveLeftPad(XXBSCD); 	
       XVFTCO.moveLeftPad(XXFTCO); 	
       XVECAR.moveLeftPad(XXECAR); 	
@@ -3363,7 +3340,7 @@ public class APS455Sbm extends Batch
          PLCRTVT.FTTASK = 3;
          PLCRTVT.FTEVEN.move("AP50");
          PLCRTVT.FTVATH = 1;
-         PLCRTVT.FTVTCD = CR040.getVTCD();
+         PLCRTVT.FTVTCD = XXVTCD;
          PLCRTVT.FTACDT = APIBH.getIVDT();
          PLCRTVT.FTLCDC = X1LCDC;
          PLCRTVT.FTBAAM = XXCUAM;         
@@ -3403,6 +3380,7 @@ public class APS455Sbm extends Batch
       if (!hasVATLine) {
          XXVTCD = CR040.getVTCD();
       }
+      CR040.setVTCD(XXVTCD);
       IN91 = !CR040.CHAIN_LOCK("10", CR040.getKey("10", 15));
       if (IN91) {
          if (XXCVAT != 0) { 	
@@ -3813,35 +3791,9 @@ public class APS455Sbm extends Batch
             } 	
          }
          XXTRNO++; 	 	
-         CR040.setTRNO(XXTRNO);
-         if ((APIBH.getIBTP().EQ(cRefIBTPext.SUPPLIER_CLAIM()) ||
-            APIBH.getIBTP().EQ(cRefIBTPext.SUPPLIER_CLAIM_REQUEST()))) {
-            if (lessThan(APIBH.getADAB(), 2, 0d) ) {
-               CR040.setCUAM(-(XXCUAM));
-               CR040.setACAM(-(XXACAM)); 
-            } else {
-               CR040.setCUAM(XXCUAM);
-               CR040.setACAM(XXACAM); 
-            }
-         } else {
-            if (lessThan(APIBH.getCUAM(), 2, 0d))  {
-               CR040.setCUAM(-(XXCUAM));
-               CR040.setACAM(-(XXACAM)); 
-            } else {
-               CR040.setCUAM(XXCUAM);
-               CR040.setACAM(XXACAM); 
-            }
-            if (unbalancedVoucher && noVATClearAcc) {
-               if (greaterThan(clearingAmount, 2, 0d) && 
-                   lessThan(XTCUAM, 2, 0d)) {
-                  CR040.setCUAM(XXCUAM);
-                  CR040.setACAM(XXACAM); 
-               } else {
-                  CR040.setCUAM(-(XXCUAM));
-                  CR040.setACAM(-(XXACAM)); 
-               }
-            }
-         } 	 		 	
+         CR040.setTRNO(XXTRNO); 	 	
+         CR040.setCUAM(XXCUAM); 	 	
+         CR040.setACAM(XXACAM); 	 	
          if (LDAZD.TATM == 1 || LDAZD.TATM == 4) { 	
             CR040.setVTAM(XXVTAM); 	 	
             CR040.setCVT1(PLCRTVT.FTVTM1); 	 	
@@ -4010,7 +3962,7 @@ public class APS455Sbm extends Batch
          CR040.setAIT5().move(PLCRTVT.FTAI15); 	 	
          CR040.setAIT6().move(PLCRTVT.FTAI16); 	 	 	
          CR040.setAIT7().move(PLCRTVT.FTAI17); 	 	 	
-         ADAT04();
+         ADAT04(); 	 	 	
          IN91 = !CR040.CHAIN_LOCK("10", CR040.getKey("10", 15)); 	 	 	
          if (IN91) { 	 	 	
             CR040.setCUAM(XCVTA1); 	 	 	
@@ -4042,11 +3994,9 @@ public class APS455Sbm extends Batch
             } 	 	
             CR040.setIVCL().moveLeftPad(invoiceClass);
             CR040.WRITE("10"); 	 	 	
-         } else { 
-            if (VATT08 != 1 && DSVTCD.getYKVATT() == 8) {
-               CR040.setCUAM(CR040.getCUAM() + XCVTA1); 	 	 	
-               CR040.setACAM(CR040.getACAM() + XAVTA1);
-            }
+         } else { 	 	 	
+            CR040.setCUAM(CR040.getCUAM() + XCVTA1); 	 	 	
+            CR040.setACAM(CR040.getACAM() + XAVTA1); 	 	 	
             if (LDAZD.TATM == 1 || LDAZD.TATM == 4) { 	
                CR040.setVTAM(CR040.getVTAM() + XXVTAM); 	 	 	
             } else { 	 	 	
@@ -4101,11 +4051,9 @@ public class APS455Sbm extends Batch
                } 	 	 	
                CR040.setIVCL().moveLeftPad(invoiceClass);
                CR040.WRITE("10"); 	 	 	
-            } else {
-               if (VATT08 != 1 && DSVTCD.getYKVATT() == 8) {
-                  CR040.setCUAM(CR040.getCUAM() + XCVTA2); 	 	
-                  CR040.setACAM(CR040.getACAM() + XAVTA2); 
-               }
+            } else { 	 	 	
+               CR040.setCUAM(CR040.getCUAM() + XCVTA2); 	 	
+               CR040.setACAM(CR040.getACAM() + XAVTA2); 	 	 	
                if (LDAZD.TATM == 1 || LDAZD.TATM == 4) { 	
                   CR040.setVTAM(CR040.getVTAM() + XXVTAM); 	 	
                } else { 	 	 	
@@ -6116,17 +6064,18 @@ public class APS455Sbm extends Batch
             GINLC.setSUNO().move(APIBH.getSUNO());
             GINLC.setSINO().move(APIBH.getSINO());
             GINLC.setINYR(CR040.getINYR());
-            GINLC.SETLL("00", GINLC.getKey("00", 5));
-            while (GINLC.READE("00", GINLC.getKey("00", 5))) {
+            GINLC.SETLL("00", GINLI.getKey("00", 5));
+            IN93 = !GINLC.READE("00", GINLI.getKey("00", 5));
+            while (!IN93) {
                if (!(equals(GINLC.getIVNA(), 0d, 6))) { 	
                   // read MPCELE
                   PCELE.setCONO(GINLC.getCONO());
                   PCELE.setCEID().moveLeftPad(GINLC.getCEID());
-                  if (PCELE.CHAIN("00", PCELE.getKey("00")) &&
-                      PCELE.getWSOP().EQ("90")) {
+                  if (PCELE.getWSOP().EQ("90")) {
                      return true;
                   }
-               }
+                  IN93 = !GINLC.READE("00", GINLI.getKey("00", 5));
+               }   
             }
          }
       }
@@ -7052,36 +7001,6 @@ public class APS455Sbm extends Batch
          }   
       }   
    }
-   
-   /**
-   *    setSelfbillingReceiptsAsUpdatedInAPL - Update status FGTP to 90 in FGRECL for Selfbilling invoice lines
-   */
-   public void setSelfbillingReceiptsAsUpdatedInAPL() {
-      if (APIBH.getIBTP().EQ(cRefIBTPext.SELF_BILLING())) {
-         APIBL.setCONO(APIBH.getCONO());
-         APIBL.setDIVI().move(APIBH.getDIVI());
-         APIBL.setINBN(APIBH.getINBN());
-         APIBL.setRDTP(cRefRDTPext.ITEM_LINE());
-         APIBL.SETLL("10", APIBL.getKey("10", 4));
-         while (APIBL.READE("10", APIBL.getKey("10", 4))) {
-            GRECL.setCONO(APIBL.getCONO());
-            GRECL.setDIVI().move(APIBL.getDIVI());
-            GRECL.setREPN(APIBL.getREPN());
-            GRECL.setRELP(APIBL.getRELP());
-            GRECL.setPUNO().move(APIBL.getPUNO());
-            GRECL.setPNLI(APIBL.getPNLI());
-            GRECL.setPNLS(APIBL.getPNLS());
-            if (GRECL.CHAIN_LOCK("00", GRECL.getKey("00"))) {
-               GRECL.setFGTP().move("90");
-               GRECL.setLMDT(movexDate());
-               GRECL.setCHNO(GRECL.getCHNO() + 1);
-               GRECL.setCHID().move(this.DSUSS);
-               GRECL.UPDAT("00");
-            }
-         }
-      }
-   }
-
 
    /**
    * End of program
@@ -7172,7 +7091,6 @@ public class APS455Sbm extends Batch
    public mvx.db.dta.FPPPAY PPPAY;
    public mvx.db.dta.CVATPC VATPC;
    public mvx.db.dta.MPSUPS PSUPS;
-   public mvx.db.dta.FGRECL GRECL;
    // Movex MDB definitions end
 
    public void initMDB() {
@@ -7207,7 +7125,6 @@ public class APS455Sbm extends Batch
       PPPAY = (mvx.db.dta.FPPPAY)getMDB("FPPPAY", PPPAY);
       VATPC = (mvx.db.dta.CVATPC)getMDB("CVATPC", VATPC);
       PSUPS = (mvx.db.dta.MPSUPS)getMDB("MPSUPS", PSUPS);
-      GRECL = (mvx.db.dta.FGRECL)getMDB("FGRECL", GRECL);
    }
 
    public cPXAPS450FncINdelete pAPS450Fnc_delete = null;
@@ -7954,7 +7871,6 @@ public class APS455Sbm extends Batch
       v.addElement(savedAIT5_VAT2);    
       v.addElement(savedAIT6_VAT2);    
       v.addElement(savedAIT7_VAT2);
-      v.addElement(GRECL);
       return version;
    }
 
@@ -8075,13 +7991,13 @@ public final static String _release="1";
 
 public final static String _spLevel="2";
 
-public final static String _spNumber="MAK_EONG_150710_04:02";
+public final static String _spNumber="";
 
 public final static String _GUID="96E5B26BD8BB4977A2046815D47BA953";
 
 public final static String _tempFixComment="";
 
-public final static String _build="000000000000220";
+public final static String _build="000000000000199";
 
 public final static String _pgmName="APS455Sbm";
 
@@ -8119,16 +8035,7 @@ public final static String _pgmName="APS455Sbm";
 
    public String [][] getStandardModification() {
       return _standardModifications;
-   } // end of method [][] getStandardModification()
+   } //·end of method [][] getStandardModification
 
-   public final static String [][] _standardModifications={
-      {"JT-597855","140522","16494","APS455Sbm does not complete"},
-      {"JT-600725","140528","16494","Does not update invoice status by F16 (Approve All) on APS360 properly - APS455Sbm"},
-      {"JT-657611","141027","ATAGALICUD","Supplier Invoice entered in APS450 get reverse VAT amount times two if no connec"},
-      {"JT-719641","150109","EONG","APS450: Update of AP ends up in GLS037 due to unbalanced voucher for credit note"},
-      {"JT-739146","150227","ATAGALICUD","We get a wrong VAT code on supplier invoices that are registered though APS450 if the VAT code that are send in though APS450MI is different from the supplier VAT code I CRS624."},
-      {"JT-755785","150401","16494","In PPS118, status self billing dont change into 90, when purchase order is invoiced and updated to Accounts Payable"},
-      {"JT-774791","150507","ATAGALICUD","APS450 and Auto VAT accounting 4 creates an unbalanced voucher sometimes"},
-      {"JT-805156","150720","EONG","APS450MI: Auto update not working"}
-   };
+  public final static String [][] _standardModifications={};
 }
